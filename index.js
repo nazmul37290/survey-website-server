@@ -27,6 +27,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const usersCollection = client.db("surveyStream").collection("users");
+    const surveysCollection = client.db("surveyStream").collection("surveys");
 
     // users related apis
     app.post("/users", async (req, res) => {
@@ -69,6 +70,13 @@ async function run() {
         options
       );
       console.log(result);
+      res.send(result);
+    });
+
+    // survey related apis
+
+    app.get("/surveys", async (req, res) => {
+      const result = await surveysCollection.find().toArray();
       res.send(result);
     });
 
