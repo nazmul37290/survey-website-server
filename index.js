@@ -28,6 +28,9 @@ async function run() {
   try {
     const usersCollection = client.db("surveyStream").collection("users");
     const surveysCollection = client.db("surveyStream").collection("surveys");
+    const reportedSurveysCollection = client
+      .db("surveyStream")
+      .collection("reportedSurveys");
 
     // users related apis
     app.post("/users", async (req, res) => {
@@ -82,8 +85,16 @@ async function run() {
 
     app.get("/surveys/:id", async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await surveysCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.post("/surveys/report", async (req, res) => {
+      const survey = req.body;
+      console.log(survey, "from api back");
+      const result = await reportedSurveysCollection.insertOne(survey);
       res.send(result);
     });
 
