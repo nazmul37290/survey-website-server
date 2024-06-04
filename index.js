@@ -131,6 +131,16 @@ async function run() {
       res.send(addPayment);
     });
 
+    // authorization related apis
+
+    app.post("/checkRole", async (req, res) => {
+      const { email } = req.body;
+      const filter = { email: email };
+      const result = await usersCollection.findOne(filter);
+      console.log(result);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
