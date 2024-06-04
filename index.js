@@ -29,6 +29,7 @@ async function run() {
   try {
     const usersCollection = client.db("surveyStream").collection("users");
     const surveysCollection = client.db("surveyStream").collection("surveys");
+    const paymentsCollection = client.db("surveyStream").collection("payments");
     const reportedSurveysCollection = client
       .db("surveyStream")
       .collection("reportedSurveys");
@@ -115,6 +116,19 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    });
+
+    app.patch("/payments", async (req, res) => {
+      const payment = req.body;
+      const filter = { email: payment.email };
+      const updateDoc = {
+        $set: {
+          role: "pro-user",
+        },
+      };
+      const updateRole = await usersCollection.updateOne(filter, updateDoc);
+      const addPayment = await paymentsCollection.insertOne(payment);
+      res.send(addPayment);
     });
 
     // Send a ping to confirm a successful connection
