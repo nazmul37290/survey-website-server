@@ -2,6 +2,7 @@ const express = require("express");
 require("dotenv").config();
 const app = express();
 const cors = require("cors");
+const stripe = require("stripe")(process.env.STRIPE_PAYMENT_SECRET);
 const port = process.env.PORT || 4000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -93,9 +94,27 @@ async function run() {
 
     app.post("/surveys/report", async (req, res) => {
       const survey = req.body;
-      console.log(survey, "from api back");
+
       const result = await reportedSurveysCollection.insertOne(survey);
       res.send(result);
+    });
+    app.post("/surveys/response", async (req, res) => {
+      //   const survey = req.body;
+      //   const result = await reportedSurveysCollection.insertOne(survey);
+      //   res.send(result);
+    });
+
+    // payment related apis
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const paymentIntent = await stripe.paymentIntents.create({
+        currency: "usd",
+        amount: 2000,
+        payment_method_types: ["card"],
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
 
     // Send a ping to confirm a successful connection
