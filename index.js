@@ -35,6 +35,11 @@ async function run() {
       .collection("reportedSurveys");
 
     // users related apis
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       user.role = "user";
@@ -78,6 +83,18 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/users", async (req, res) => {
+      const data = req.body;
+      console.log(data, "user");
+      const filter = { email: data.email };
+      const updateData = {
+        $set: {
+          role: data.newRole,
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateData);
+      res.send(result);
+    });
     // survey related apis
 
     app.get("/surveys", async (req, res) => {
