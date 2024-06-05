@@ -36,7 +36,12 @@ async function run() {
 
     // users related apis
     app.get("/users", async (req, res) => {
-      const result = await usersCollection.find().toArray();
+      let query = {};
+      console.log(req.query);
+      if (req.query.role) {
+        query = { role: req.query.role };
+      }
+      const result = await usersCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -93,6 +98,13 @@ async function run() {
         },
       };
       const result = await usersCollection.updateOne(filter, updateData);
+      res.send(result);
+    });
+
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(filter);
       res.send(result);
     });
     // survey related apis
