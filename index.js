@@ -30,6 +30,9 @@ async function run() {
     const usersCollection = client.db("surveyStream").collection("users");
     const surveysCollection = client.db("surveyStream").collection("surveys");
     const paymentsCollection = client.db("surveyStream").collection("payments");
+    const unPublishSurveyCollection = client
+      .db("surveyStream")
+      .collection("unPublished");
     const reportedSurveysCollection = client
       .db("surveyStream")
       .collection("reportedSurveys");
@@ -132,6 +135,26 @@ async function run() {
       //   const survey = req.body;
       //   const result = await reportedSurveysCollection.insertOne(survey);
       //   res.send(result);
+    });
+    app.patch("/surveys/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedStatus = req.body;
+      console.log(id, updatedStatus);
+      const filter = { _id: new ObjectId(id) };
+      const newStatus = {
+        $set: {
+          status: updatedStatus.newStatus,
+        },
+      };
+      const update = await surveysCollection.updateOne(filter, newStatus);
+      if (updatedStatus.feedback) {
+        const result = await unPublishSurveyCollection.insertOne({
+          surveyId: id,
+          feedback: updatedStatus.feedback,
+        });
+        res.send(result);
+      }
+      //   res.send(update);
     });
 
     // payment related apis
