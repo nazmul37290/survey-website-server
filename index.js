@@ -30,6 +30,9 @@ async function run() {
     const usersCollection = client.db("surveyStream").collection("users");
     const surveysCollection = client.db("surveyStream").collection("surveys");
     const paymentsCollection = client.db("surveyStream").collection("payments");
+    const responseCollection = client
+      .db("surveyStream")
+      .collection("responses");
     const unPublishSurveyCollection = client
       .db("surveyStream")
       .collection("unPublished");
@@ -131,16 +134,52 @@ async function run() {
       const result = await reportedSurveysCollection.find(query).toArray();
       res.send(result);
     });
+    app.get("/surveys/user/participated", async (req, res) => {
+      const email = req.query.email;
+
+      const query = { "responses.votedUserEmail": email };
+      const result = await responseCollection.find(query).toArray();
+      res.send(result);
+    });
     app.post("/surveys/report", async (req, res) => {
       const survey = req.body;
 
       const result = await reportedSurveysCollection.insertOne(survey);
       res.send(result);
     });
-    app.post("/surveys/response", async (req, res) => {
-      //   const survey = req.body;
-      //   const result = await reportedSurveysCollection.insertOne(survey);
-      //   res.send(result);
+    app.put("/surveys/response", async (req, res) => {
+      const {
+        _id,
+        title,
+        description,
+        category,
+        deadline,
+        surveyorEmail,
+        questions,
+        responses,
+      } = req.body;
+      //   console.log(response);
+      const filter = { surveyId: _id };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          title,
+          description,
+          category,
+          deadline,
+          surveyorEmail,
+          questions,
+        },
+        $push: {
+          responses: responses[0],
+        },
+      };
+      const result = await responseCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
     });
     app.patch("/surveys/:id", async (req, res) => {
       const id = req.params.id;
