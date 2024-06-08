@@ -141,6 +141,16 @@ async function run() {
       const result = await responseCollection.find(query).toArray();
       res.send(result);
     });
+    app.post("/surveys", async (req, res) => {
+      const data = req.body;
+      const time = new Date();
+      const timestamp = time.toLocaleDateString("ja-JP");
+      const voteCount = 0;
+      const status = "publish";
+      const survey = { ...data, timeStamp, status, voteCount };
+      const result = await surveysCollection.insertOne(survey);
+      res.send(result);
+    });
     app.post("/surveys/report", async (req, res) => {
       const survey = req.body;
 
