@@ -119,12 +119,18 @@ async function run() {
 
     app.get("/surveys/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      console.log(id, "from 122");
       const query = { _id: new ObjectId(id) };
       const result = await surveysCollection.findOne(query);
       res.send(result);
     });
+    app.get("/surveys/user/reports", async (req, res) => {
+      const email = req.query.email;
 
+      const query = { reportedBy: email };
+      const result = await reportedSurveysCollection.find(query).toArray();
+      res.send(result);
+    });
     app.post("/surveys/report", async (req, res) => {
       const survey = req.body;
 
@@ -158,7 +164,10 @@ async function run() {
     });
 
     // payment related apis
-
+    app.get("/payments", async (req, res) => {
+      const result = await paymentsCollection.find().toArray();
+      res.send(result);
+    });
     app.post("/create-payment-intent", async (req, res) => {
       const paymentIntent = await stripe.paymentIntents.create({
         currency: "usd",
