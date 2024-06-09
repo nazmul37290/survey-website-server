@@ -147,7 +147,7 @@ async function run() {
       const timestamp = time.toLocaleDateString("ja-JP");
       const voteCount = 0;
       const status = "publish";
-      const survey = { ...data, timeStamp, status, voteCount };
+      const survey = { ...data, timestamp, status, voteCount };
       const result = await surveysCollection.insertOne(survey);
       res.send(result);
     });
@@ -155,6 +155,13 @@ async function run() {
       const survey = req.body;
 
       const result = await reportedSurveysCollection.insertOne(survey);
+      res.send(result);
+    });
+    app.get("/surveys/responses/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id, "resposes");
+      const filter = { surveyId: id };
+      const result = await responseCollection.findOne(filter);
       res.send(result);
     });
     app.put("/surveys/response", async (req, res) => {
