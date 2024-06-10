@@ -2,6 +2,7 @@ const express = require("express");
 require("dotenv").config();
 const app = express();
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const stripe = require("stripe")(process.env.STRIPE_PAYMENT_SECRET);
 const port = process.env.PORT || 4000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -9,6 +10,24 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // middlewares
 app.use(cors());
 app.use(express.json());
+
+// custom middlewares
+
+const verifyToken = (req, res, next) => {
+  console.log("req intercepted ");
+  console.log(req.headers.authorization, "from verfy token");
+  if (!req.headers.authorization) {
+    return res.status(401).send({ message: "forbidden access" });
+  }
+  const token = req.headers.authorization.split(" ")[1];
+  jwt.verify(token, process.env.JWT_TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      return res.status(401).send({ message: "forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
 
 app.get("/", (req, res) => {
   res.send("survey is ongoing");
@@ -41,7 +60,8 @@ async function run() {
       .collection("reportedSurveys");
 
     // users related apis
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, async (req, res) => {
+      console.log(req.headers);
       let query = {};
       console.log(req.query);
       if (req.query.role) {
@@ -256,6 +276,14 @@ async function run() {
       const result = await usersCollection.findOne(filter);
       console.log(result);
       res.send(result);
+    });
+
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.JWT_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
     });
 
     // Send a ping to confirm a successful connection
