@@ -8,7 +8,15 @@ const port = process.env.PORT || 4000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://survey-stream.web.appp",
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ],
+  })
+);
 app.use(express.json());
 
 // custom middlewares
@@ -114,7 +122,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/users", async (req, res) => {
+    app.patch("/users", verifyToken, async (req, res) => {
       const data = req.body;
       console.log(data, "user");
       const filter = { email: data.email };
@@ -127,7 +135,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/users/:id", async (req, res) => {
+    app.delete("/users/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
@@ -142,26 +150,26 @@ async function run() {
 
     app.get("/surveys/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id, "from 122");
+
       const query = { _id: new ObjectId(id) };
       const result = await surveysCollection.findOne(query);
       res.send(result);
     });
-    app.get("/surveys/user/reports", async (req, res) => {
+    app.get("/surveys/user/reports", verifyToken, async (req, res) => {
       const email = req.query.email;
 
       const query = { reportedBy: email };
       const result = await reportedSurveysCollection.find(query).toArray();
       res.send(result);
     });
-    app.get("/surveys/user/participated", async (req, res) => {
+    app.get("/surveys/user/participated", verifyToken, async (req, res) => {
       const email = req.query.email;
 
       const query = { "responses.votedUserEmail": email };
       const result = await responseCollection.find(query).toArray();
       res.send(result);
     });
-    app.post("/surveys", async (req, res) => {
+    app.post("/surveys", verifyToken, async (req, res) => {
       const data = req.body;
       const time = new Date();
       const timestamp = time.toLocaleDateString("ja-JP");
@@ -171,20 +179,20 @@ async function run() {
       const result = await surveysCollection.insertOne(survey);
       res.send(result);
     });
-    app.post("/surveys/report", async (req, res) => {
+    app.post("/surveys/report", verifyToken, async (req, res) => {
       const survey = req.body;
 
       const result = await reportedSurveysCollection.insertOne(survey);
       res.send(result);
     });
-    app.get("/surveys/responses/:id", async (req, res) => {
+    app.get("/surveys/responses/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
-      console.log(id, "resposes");
+
       const filter = { surveyId: id };
       const result = await responseCollection.findOne(filter);
       res.send(result);
     });
-    app.put("/surveys/response", async (req, res) => {
+    app.put("/surveys/response", verifyToken, async (req, res) => {
       const {
         _id,
         title,
@@ -218,7 +226,7 @@ async function run() {
       );
       res.send(result);
     });
-    app.patch("/surveys/:id", async (req, res) => {
+    app.patch("/surveys/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const updatedStatus = req.body;
       console.log(id, updatedStatus);
