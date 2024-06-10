@@ -11,7 +11,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 app.use(
   cors({
     origin: [
-      "https://survey-stream.web.appp",
+      "https://survey-stream.web.app",
       "http://localhost:5173",
       "http://localhost:5174",
     ],
@@ -150,7 +150,7 @@ async function run() {
 
     app.get("/surveys/:id", async (req, res) => {
       const id = req.params.id;
-
+      console.log(id, "form 153");
       const query = { _id: new ObjectId(id) };
       const result = await surveysCollection.findOne(query);
       res.send(result);
@@ -167,6 +167,10 @@ async function run() {
 
       const query = { "responses.votedUserEmail": email };
       const result = await responseCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.get("/surveys/unpublished/feedbacks", async (req, res) => {
+      const result = await unPublishSurveyCollection.find().toArray();
       res.send(result);
     });
     app.post("/surveys", verifyToken, async (req, res) => {
